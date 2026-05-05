@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Herb Identifier</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <!-- Your CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container py-5">
+
+    <!-- Title -->
+    <h1 class="text-center mb-4 animate__animated animate__fadeInDown">
+        🌿 Medicinal Herb Identifier
+    </h1>
+
+    <!-- Upload Form -->
+    <div class="card p-4 shadow mb-4 animate__animated animate__fadeInUp">
+        <form method="POST" enctype="multipart/form-data" class="text-center">
+    
+        <input type="file" name="image" class="form-control mb-3" onchange="previewImage(event)">
+    
+        <!-- Image Preview -->
+        <img id="preview" class="img-fluid rounded mb-3" style="max-height:200px; display:none;" />
+
+        <button class="btn btn-success px-4">Identify</button>
+
+        </form>
+    </div>
+
+    <!-- Search Form -->
+    <div class="card p-4 shadow mb-4 animate__animated animate__fadeInUp">
+        <h5 class="text-center">🔍 Search Herb</h5>
+        <form method="POST" class="text-center">
+            <input type="text" name="search" class="form-control mb-3" placeholder="Enter herb name...">
+            <button class="btn btn-primary px-4">Search</button>
+        </form>
+    </div>
+
+    <!-- Result Card -->
+    {% if result %}
+    <div class="card shadow-lg p-4 animate__animated animate__zoomIn">
+
+        <h2 class="text-center text-success mb-3">{{ result }}</h2>
+
+        <!-- Show Uploaded Image -->
+        {% if image_path %}
+            <div class="text-center mb-3">
+                <img src="{{ image_path }}" class="img-fluid rounded" style="max-height:250px;">
+            </div>
+        {% endif %}
+
+        <!-- Internet Image -->
+        {% if image_url %}
+        <div class="text-center mb-3">
+            <img src="{{ image_url }}" class="img-fluid rounded shadow" style="max-height:250px;">
+        </div>
+        {% endif %}
+
+        {% if info and info.scientific %}
+            <p><b>Scientific Name:</b> {{ info.scientific }}</p>
+            <p><b>Uses:</b> {{ info.uses }}</p>
+            <p><b>Precautions:</b> {{ info.precautions }}</p>
+        {% else %}
+            <p>{{ info.summary }}</p>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+    <!-- Disclaimer -->
+    <p class="text-center text-danger mt-4">
+        ⚠️ This information is for educational purposes only.
+    </p>
+
+</div>
+
+<script>
+function previewImage(event) {
+    const preview = document.getElementById("preview");
+    preview.src = URL.createObjectURL(event.target.files[0]);
+    preview.style.display = "block";
+}
+</script>
+
+</body>
+</html>
