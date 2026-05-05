@@ -10,6 +10,8 @@ from werkzeug.utils import secure_filename
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+os.makedirs("static/uploads", exist_ok=True)
+
 def get_plant_info(plant_name):
     
     try:
@@ -238,61 +240,66 @@ def identify_plant(image):
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    result = None
-    info = None
-    image_path = None
-    image_url = None
+    try:
+        result = None
+        info = None
+        image_path = None
+        image_url = None
 
-    if request.method == "POST":
+        if request.method == "POST":
 
-        file = request.files.get("image")
-        search = request.form.get("search")
+            file = request.files.get("image")
+            search = request.form.get("search")
 
-        # 📷 IMAGE UPLOAD
-        if file and file.filename != "":
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(filepath)
+            # 📷 IMAGE UPLOAD
+            if file and file.filename != "":
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                file.save(filepath)
 
-            result = identify_plant(open(filepath, "rb"))
-            image_path = filepath
+                result = identify_plant(open(filepath, "rb"))
+                image_path = filepath
 
-        # 🔍 SEARCH INPUT (THIS WAS MISSING ❗)
-        elif search and search.strip() != "":
-            result = search.strip().title()
-            image_path = None
+            # 🔍 SEARCH INPUT (THIS WAS MISSING ❗)
+            elif search and search.strip() != "":
+                result = search.strip().title()
+                image_path = None
 
-        # ✅ APPLY NAME MAPPING
-        if result in name_mapping:
-            result = name_mapping[result]
+            # ✅ APPLY NAME MAPPING
+            if result in name_mapping:
+                result = name_mapping[result]
+
+            if result:
+                image_url = get_plant_image(result)
+                print("Image URL:", image_url)
+
+            # ✅ MATCH DATA
+            if result:
+                result_clean = result.lower()
+                herb_data_lower = {k.lower(): v for k, v in herb_data.items()}
+
+                if result_clean in herb_data_lower:
+                    info = herb_data_lower[result_clean]
+                else:
+                    info = get_plant_info(result)
+
+                    if not info:
+                        info = {
+                            "scientific": "Not available",
+                            "uses": "No data found",
+                            "precautions": "No data available"
+                        }
 
         if result:
-            image_url = get_plant_image(result)
+            print("Detected plant:", result)
             print("Image URL:", image_url)
+            print("Info:", info)
+        return render_template("index.html", result=result, info=info, image_path=image_path, image_url=image_url)
+    except Exception as e:
+        print("🔥ERROR:", str(e))
+        return "Error occurred: " + str(e)
 
-        # ✅ MATCH DATA
-        if result:
-            result_clean = result.lower()
-            herb_data_lower = {k.lower(): v for k, v in herb_data.items()}
-
-            if result_clean in herb_data_lower:
-                info = herb_data_lower[result_clean]
-            else:
-                info = get_plant_info(result)
-
-                if not info:
-                    info = {
-                        "scientific": "Not available",
-                        "uses": "No data found",
-                        "precautions": "No data available"
-                    }
-
-    if result:
-        print("Detected plant:", result)
-        print("Image URL:", image_url)
-        print("Info:", info)
-    return render_template("index.html", result=result, info=info, image_path=image_path, image_url=image_url)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
