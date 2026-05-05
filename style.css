@@ -1,0 +1,21 @@
+body {
+    background: linear-gradient(to right, #e8f5e9, #f1f8e9);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+h1 {
+    font-weight: bold;
+}
+
+.card {
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.02);
+}
+
+button {
+    border-radius: 20px !important;
+}
